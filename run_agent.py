@@ -96,6 +96,7 @@ from agent.subdirectory_hints import SubdirectoryHintTracker
 from agent.prompt_caching import apply_anthropic_cache_control
 from agent.prompt_builder import build_skills_system_prompt, build_context_files_prompt, load_soul_md, TOOL_USE_ENFORCEMENT_GUIDANCE, TOOL_USE_ENFORCEMENT_MODELS, DEVELOPER_ROLE_MODELS, GOOGLE_MODEL_OPERATIONAL_GUIDANCE, OPENAI_MODEL_EXECUTION_GUIDANCE
 from agent.usage_pricing import estimate_usage_cost, normalize_usage
+from agent.unilang_mediator import UnilangMediator
 from agent.display import (
     KawaiiSpinner, build_tool_preview as _build_tool_preview,
     get_cute_tool_message as _get_cute_tool_message_impl,
@@ -1101,6 +1102,12 @@ class AIAgent:
             _agent_cfg = _load_agent_config()
         except Exception:
             _agent_cfg = {}
+
+        # Language mediation (unilang) — disabled by default (enabled=False).
+        # Enable via language_mediation.enabled: true in ~/.hermes/config.yaml.
+        self._unilang = UnilangMediator(
+            language_mediation_config=_agent_cfg.get("language_mediation", {}),
+        )
 
         # Persistent memory (MEMORY.md + USER.md) -- loaded from disk
         self._memory_store = None
@@ -6935,6 +6942,12 @@ class AIAgent:
             if subdir_hints:
                 function_result += subdir_hints
 
+            # Language mediation: translate tool result prose to provider language.
+            # Code fences, URLs, paths, and structured data are preserved.
+            function_result = self._unilang.mediate_tool_result(
+                function_name, function_result,
+            )
+
             tool_msg = {
                 "role": "tool",
                 "content": function_result,
@@ -7270,6 +7283,10 @@ class AIAgent:
         self._mute_post_response = False
         self._unicode_sanitization_passes = 0
 
+        # Reset unilang session state so each turn re-initializes correctly.
+        if hasattr(self, "_unilang") and self._unilang is not None:
+            self._unilang._session_initialized = False
+
         # Pre-turn connection health check: detect and clean up dead TCP
         # connections left over from provider outages or dropped streams.
         # This prevents the next API call from hanging on a zombie socket.
@@ -7338,7 +7355,14 @@ class AIAgent:
                 _should_review_memory = True
                 self._turns_since_memory = 0
 
-        # Add user message
+        # Language mediation: normalize user input to provider language BEFORE history
+        # is built and before the message is appended.  Uses original_user_message
+        # (the clean, non-synthetic variant) so the runtime detects the real
+        # user language accurately.
+        user_message = self._unilang.normalize_input(
+            user_message,
+            conversation_history=conversation_history,
+        )
         user_msg = {"role": "user", "content": user_message}
         messages.append(user_msg)
         current_turn_user_idx = len(messages) - 1
@@ -9663,6 +9687,15 @@ class AIAgent:
             )
         else:
             logger.info(_diag_msg, *_diag_args)
+
+        # Language mediation: localize final response back to the user's language
+        # AFTER all tool processing but BEFORE the result is returned to the platform.
+        # Uses original_user_message so the runtime has the real (non-synthetic) input.
+        if final_response and not interrupted:
+            final_response = self._unilang.localize_output(
+                final_response,
+                turn_input=original_user_message,
+            )
 
         # Plugin hook: post_llm_call
         # Fired once per turn after the tool-calling loop completes.

@@ -871,3 +871,38 @@ display:
 #   # Names and usernames are NOT affected (user-chosen, publicly visible).
 #   # Routing/delivery still uses the original values internally.
 #   redact_pii: false
+
+# =============================================================================
+# Language Mediation (unilang) — Multilingual LMR Support
+# =============================================================================
+# Translate user input to a provider language (e.g. English) for internal LLM
+# calls, then localise responses back to the user's language afterward.
+# DISABLED by default (enabled=False). English-only sessions are unaffected.
+#
+# How it works:
+#   1. User writes in their language (e.g. Portuguese)
+#   2. Runtime normalizes input to provider language (English) before LLM call
+#   3. LLM runs in English (optimal quality, lowest cost)
+#   4. Response is localised back to the user's language
+#   5. Both canonical (English) and render (local) variants are stored
+#
+# Requirements: None for mock/pass-through mode.
+#               Configure a real adapter for actual translation.
+#
+# language_mediation:
+#   enabled: true
+#   provider_language: "en"           # Canonical internal language (default: English)
+#   supported_languages: ["en", "pt-BR"]  # Languages to detect and support
+#   # Translation adapter (mock = pass-through; configure API key for real translation)
+#   adapter:
+#     provider: "mock"                 # "mock" = disabled, pass-through only
+#     # provider: "google"             # Google Translate (requires: GOOGLE_TRANSLATE_API_KEY)
+#     # provider: "openai"             # OpenAI (requires: OPENAI_API_KEY)
+#   # Persist variant store (English + local transcripts side-by-side in SQLite)
+#   variant_store:
+#     enabled: false
+#     path: null                       # null = ~/.hermes/unilang_variants.db
+#   # Cache translated content (avoids duplicate translation calls)
+#   cache:
+#     enabled: true
+#     path: null                       # null = ~/.hermes/unilang_cache.db

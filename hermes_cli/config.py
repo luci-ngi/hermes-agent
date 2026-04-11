@@ -450,6 +450,33 @@ DEFAULT_CONFIG = {
     "privacy": {
         "redact_pii": False,  # When True, hash user IDs and strip phone numbers from LLM context
     },
+
+    # Language mediation (unilang) — multilingual LMR support.
+    # DISABLED by default (enabled=False). Enable to activate.
+    # When disabled, all methods are zero-ops — English sessions unaffected.
+    "language_mediation": {
+        "enabled": False,
+        # Provider language: the canonical language used internally for LLM calls.
+        # All user input is translated to this language; responses are localised back.
+        # Default: "en" (English).
+        "provider_language": "en",
+        # Supported user languages for detection (add more ISO 639-1 codes as needed).
+        "supported_languages": ["en", "pt-BR"],
+        # Translation adapter (currently only "mock" — real adapter requires API key).
+        "adapter": {
+            "provider": "mock",
+        },
+        # Persist variant store (SQLite sidecar). Set path null to disable.
+        "variant_store": {
+            "enabled": False,
+            "path": None,  # null = ~/.hermes/unilang_variants.db
+        },
+        # Cache for translated content (avoids duplicate translation calls).
+        "cache": {
+            "enabled": True,
+            "path": None,  # null = ~/.hermes/unilang_cache.db
+        },
+    },
     
     # Text-to-speech configuration
     "tts": {
