@@ -887,17 +887,20 @@ display:
 #   5. Both canonical (English) and render (local) variants are stored
 #
 # Requirements: None for mock/pass-through mode.
-#               Configure a real adapter for actual translation.
+#               For MiniMax: pip install 'unilang[minimax]'
 #
 # language_mediation:
 #   enabled: true
 #   provider_language: "en"           # Canonical internal language (default: English)
 #   supported_languages: ["en", "pt-BR"]  # Languages to detect and support
-#   # Translation adapter (mock = pass-through; configure API key for real translation)
+#   # Translation adapter
 #   adapter:
-#     provider: "mock"                 # "mock" = disabled, pass-through only
-#     # provider: "google"             # Google Translate (requires: GOOGLE_TRANSLATE_API_KEY)
-#     # provider: "openai"             # OpenAI (requires: OPENAI_API_KEY)
+#     provider: "mock"                 # "mock" | "minimax"
+#     # provider: "minimax"           # MiniMax M2.7/M2.5 (requires: pip install 'unilang[minimax]')
+#     # api_key: "sk-cp-..."        # MiniMax API key (or set MINIMAX_API_KEY env var)
+#     # model: "MiniMax-M2.7-highspeed"  # "MiniMax-M2.7" | "MiniMax-M2.7-highspeed" | "MiniMax-M2.5-highspeed"
+#     # timeout_seconds: 30.0
+#     # failure_mode: "pass_through"   # "pass_through" returns original text on failure
 #   # Persist variant store (English + local transcripts side-by-side in SQLite)
 #   variant_store:
 #     enabled: false

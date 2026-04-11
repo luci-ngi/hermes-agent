@@ -462,9 +462,20 @@ DEFAULT_CONFIG = {
         "provider_language": "en",
         # Supported user languages for detection (add more ISO 639-1 codes as needed).
         "supported_languages": ["en", "pt-BR"],
-        # Translation adapter (currently only "mock" — real adapter requires API key).
+        # Translation adapter.
+        # Supported providers:
+        #   - "mock" / "passthrough": No-op adapter, returns text unchanged (default).
+        #   - "minimax": MiniMax M2.7/M2.5 model via Anthropic-compatible API.
+        #     Requires: pip install 'unilang[minimax]'
+        #     Required config: adapter.api_key (or MINIMAX_API_KEY env var)
+        #     Optional: adapter.model ("MiniMax-M2.7-highspeed"), adapter.base_url,
+        #                adapter.timeout_seconds, adapter.failure_mode
         "adapter": {
-            "provider": "mock",
+            "provider": "mock",  # "mock" | "minimax"
+            # "api_key": "sk-cp-...",  # MiniMax API key (or set MINIMAX_API_KEY env var)
+            # "model": "MiniMax-M2.7-highspeed",
+            # "timeout_seconds": 30.0,
+            # "failure_mode": "pass_through",  # "pass_through" returns original on failure
         },
         # Persist variant store (SQLite sidecar). Set path null to disable.
         "variant_store": {

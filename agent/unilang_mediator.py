@@ -87,6 +87,7 @@ class UnilangMediator:
 
             cache_cfg = self._config.get("cache", {})
             variant_cfg = self._config.get("variant_store", {})
+            adapter_cfg = self._config.get("adapter", {})
 
             cache_path = cache_cfg.get("path") or str(Path.home() / ".hermes" / "unilang_cache.db")
             variant_path = variant_cfg.get("path") or str(Path.home() / ".hermes" / "unilang_variants.db")
@@ -94,11 +95,13 @@ class UnilangMediator:
             os.makedirs(os.path.dirname(cache_path) or ".", exist_ok=True)
             os.makedirs(os.path.dirname(variant_path) or ".", exist_ok=True)
 
+            adapter = self._build_adapter(adapter_cfg)
+
             self._runtime = LanguageRuntime(
                 policy=LanguagePolicyEngine(),
                 detector=LanguageDetector(),
                 classifier=ContentClassifier(),
-                adapter=PassthroughTranslationAdapter(),
+                adapter=adapter,
                 cache=LanguageCache(cache_path),
                 variant_store=VariantStore(variant_path),
                 prompt_artifact_scanner=AllowAllPromptArtifactScanner(),
@@ -111,6 +114,40 @@ class UnilangMediator:
                 exc,
             )
             self._enabled = False
+
+    def _build_adapter(self, adapter_cfg: Dict[str, Any]):
+        """Build the translation adapter based on config."""
+        provider = adapter_cfg.get("provider", "mock")
+
+        if provider == "minimax":
+            api_key = adapter_cfg.get("api_key") or os.environ.get("MINIMAX_API_KEY", "")
+            if not api_key:
+                logger.warning(
+                    "UnilangMediator: MiniMax adapter selected but no API key found. "
+                    "Set 'adapter.api_key' in config or MINIMAX_API_KEY env var. "
+                    "Falling back to PassthroughTranslationAdapter."
+                )
+                return PassthroughTranslationAdapter()
+
+            try:
+                from unilang.minimax_adapter import MiniMaxTranslationAdapter
+
+                return MiniMaxTranslationAdapter(
+                    api_key=api_key,
+                    model=adapter_cfg.get("model", "MiniMax-M2.7-highspeed"),
+                    base_url=adapter_cfg.get("base_url", "https://api.minimax.io/anthropic"),
+                    timeout_seconds=adapter_cfg.get("timeout_seconds", 30.0),
+                    failure_mode=adapter_cfg.get("failure_mode", "pass_through"),
+                )
+            except ImportError:
+                logger.warning(
+                    "UnilangMediator: MiniMax adapter requested but 'anthropic' package "
+                    "not installed. Run: pip install 'unilang[minimax]'. "
+                    "Falling back to PassthroughTranslationAdapter."
+                )
+                return PassthroughTranslationAdapter()
+
+        return PassthroughTranslationAdapter()
 
     def _init_session(self, session_id: str) -> None:
         """Called once per ``run_conversation`` session."""
