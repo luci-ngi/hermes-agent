@@ -202,6 +202,23 @@ def _is_third_party_anthropic_endpoint(base_url: str | None) -> bool:
     return True  # Any other endpoint is a third-party proxy
 
 
+def is_native_anthropic_endpoint(base_url: str | None, model: str | None = None) -> bool:
+    """Return True if this is a native Anthropic endpoint, not a third-party compatible API.
+
+    Uses two signals (either is sufficient):
+    - base_url resolves to anthropic.com (or is None/default → SDK default)
+    - model name contains 'claude' (Anthropic's model family)
+
+    Used to gate OAuth / Claude Code transforms that should only apply when
+    actually talking to Anthropic's servers — not MiniMax, Alibaba, etc.
+    """
+    if not _is_third_party_anthropic_endpoint(base_url):
+        return True  # URL is anthropic.com or SDK default (None)
+    if model and "claude" in model.lower():
+        return True
+    return False
+
+
 def _requires_bearer_auth(base_url: str | None) -> bool:
     """Return True for Anthropic-compatible providers that require Bearer auth.
 

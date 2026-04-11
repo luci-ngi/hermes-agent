@@ -856,8 +856,8 @@ class AIAgent:
             self.api_key = effective_key
             self._anthropic_api_key = effective_key
             self._anthropic_base_url = base_url
-            from agent.anthropic_adapter import _is_oauth_token as _is_oat
-            self._is_anthropic_oauth = _is_oat(effective_key)
+            from agent.anthropic_adapter import _is_oauth_token as _is_oat, is_native_anthropic_endpoint
+            self._is_anthropic_oauth = _is_oat(effective_key) if is_native_anthropic_endpoint(base_url, self.model) else False
             self._anthropic_client = build_anthropic_client(effective_key, base_url)
             # No OpenAI client needed for Anthropic mode
             self.client = None
@@ -1445,6 +1445,7 @@ class AIAgent:
                 build_anthropic_client,
                 resolve_anthropic_token,
                 _is_oauth_token,
+                is_native_anthropic_endpoint,
             )
             effective_key = api_key or self.api_key or resolve_anthropic_token() or ""
             self.api_key = effective_key
@@ -1453,7 +1454,7 @@ class AIAgent:
             self._anthropic_client = build_anthropic_client(
                 effective_key, self._anthropic_base_url,
             )
-            self._is_anthropic_oauth = _is_oauth_token(effective_key)
+            self._is_anthropic_oauth = _is_oauth_token(effective_key) if is_native_anthropic_endpoint(self._anthropic_base_url, new_model) else False
             self.client = None
             self._client_kwargs = {}
         else:
@@ -4342,7 +4343,7 @@ class AIAgent:
         runtime_base = getattr(entry, "runtime_base_url", None) or getattr(entry, "base_url", None) or self.base_url
 
         if self.api_mode == "anthropic_messages":
-            from agent.anthropic_adapter import build_anthropic_client, _is_oauth_token
+            from agent.anthropic_adapter import build_anthropic_client, _is_oauth_token, is_native_anthropic_endpoint
 
             try:
                 self._anthropic_client.close()
@@ -4352,7 +4353,7 @@ class AIAgent:
             self._anthropic_api_key = runtime_key
             self._anthropic_base_url = runtime_base
             self._anthropic_client = build_anthropic_client(runtime_key, runtime_base)
-            self._is_anthropic_oauth = _is_oauth_token(runtime_key) if self.provider == "anthropic" else False
+            self._is_anthropic_oauth = _is_oauth_token(runtime_key) if is_native_anthropic_endpoint(runtime_base, self.model) else False
             self.api_key = runtime_key
             self.base_url = runtime_base
             return
@@ -5193,13 +5194,13 @@ class AIAgent:
 
             if fb_api_mode == "anthropic_messages":
                 # Build native Anthropic client instead of using OpenAI client
-                from agent.anthropic_adapter import build_anthropic_client, resolve_anthropic_token, _is_oauth_token
+                from agent.anthropic_adapter import build_anthropic_client, resolve_anthropic_token, _is_oauth_token, is_native_anthropic_endpoint
                 effective_key = (fb_client.api_key or resolve_anthropic_token() or "") if fb_provider == "anthropic" else (fb_client.api_key or "")
                 self.api_key = effective_key
                 self._anthropic_api_key = effective_key
                 self._anthropic_base_url = fb_base_url
                 self._anthropic_client = build_anthropic_client(effective_key, self._anthropic_base_url)
-                self._is_anthropic_oauth = _is_oauth_token(effective_key)
+                self._is_anthropic_oauth = _is_oauth_token(effective_key) if is_native_anthropic_endpoint(fb_base_url, fb_model) else False
                 self.client = None
                 self._client_kwargs = {}
             else:
