@@ -72,8 +72,37 @@ class UnilangMediator:
         if self._runtime is not None:
             return
         try:
-            from unilang import LanguageRuntime
-            self._runtime = LanguageRuntime(config=self._config)
+            import os
+            from pathlib import Path
+            from unilang import LanguageRuntime, PassthroughTranslationAdapter
+            from unilang.config import LanguageMediationConfig
+            from unilang.language_policy import LanguagePolicyEngine
+            from unilang.language_detector import LanguageDetector
+            from unilang.content_classifier import ContentClassifier
+            from unilang.prompt_artifacts import AllowAllPromptArtifactScanner
+            from unilang.language_cache import LanguageCache
+            from unilang.variant_store import VariantStore
+
+            cfg = LanguageMediationConfig(**self._config)
+
+            cache_cfg = self._config.get("cache", {})
+            variant_cfg = self._config.get("variant_store", {})
+
+            cache_path = cache_cfg.get("path") or str(Path.home() / ".hermes" / "unilang_cache.db")
+            variant_path = variant_cfg.get("path") or str(Path.home() / ".hermes" / "unilang_variants.db")
+
+            os.makedirs(os.path.dirname(cache_path) or ".", exist_ok=True)
+            os.makedirs(os.path.dirname(variant_path) or ".", exist_ok=True)
+
+            self._runtime = LanguageRuntime(
+                policy=LanguagePolicyEngine(),
+                detector=LanguageDetector(),
+                classifier=ContentClassifier(),
+                adapter=PassthroughTranslationAdapter(),
+                cache=LanguageCache(cache_path),
+                variant_store=VariantStore(variant_path),
+                prompt_artifact_scanner=AllowAllPromptArtifactScanner(),
+            )
             logger.debug("UnilangMediator: LanguageRuntime initialised (enabled=True)")
         except Exception as exc:
             logger.warning(
