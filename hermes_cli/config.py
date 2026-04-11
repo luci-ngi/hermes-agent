@@ -472,7 +472,7 @@ DEFAULT_CONFIG = {
         #                adapter.timeout_seconds, adapter.failure_mode
         "adapter": {
             "provider": "mock",  # "mock" | "minimax"
-            # "api_key": "sk-cp-...",  # MiniMax API key (or set MINIMAX_API_KEY env var)
+            # "api_key": "your-minimax-api-key",  # MiniMax API key (or set MINIMAX_API_KEY env var)
             # "model": "MiniMax-M2.7-highspeed",
             # "timeout_seconds": 30.0,
             # "failure_mode": "pass_through",  # "pass_through" returns original on failure

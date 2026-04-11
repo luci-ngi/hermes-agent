@@ -6945,7 +6945,9 @@ class AIAgent:
             # Language mediation: translate tool result prose to provider language.
             # Code fences, URLs, paths, and structured data are preserved.
             function_result = self._unilang.mediate_tool_result(
-                function_name, function_result,
+                function_name,
+                function_result,
+                session_id=self.session_id,
             )
 
             tool_msg = {
@@ -7283,9 +7285,10 @@ class AIAgent:
         self._mute_post_response = False
         self._unicode_sanitization_passes = 0
 
-        # Reset unilang session state so each turn re-initializes correctly.
+        # Bind unilang to the current Hermes session so language state and
+        # persisted variants stay scoped to the same conversation.
         if hasattr(self, "_unilang") and self._unilang is not None:
-            self._unilang._session_initialized = False
+            self._unilang.bind_session(self.session_id)
 
         # Pre-turn connection health check: detect and clean up dead TCP
         # connections left over from provider outages or dropped streams.
@@ -7362,6 +7365,7 @@ class AIAgent:
         user_message = self._unilang.normalize_input(
             user_message,
             conversation_history=conversation_history,
+            session_id=self.session_id,
         )
         user_msg = {"role": "user", "content": user_message}
         messages.append(user_msg)
@@ -9695,6 +9699,7 @@ class AIAgent:
             final_response = self._unilang.localize_output(
                 final_response,
                 turn_input=original_user_message,
+                session_id=self.session_id,
             )
 
         # Plugin hook: post_llm_call
