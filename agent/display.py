@@ -164,6 +164,40 @@ def get_tool_emoji(tool_name: str, default: str = "⚡") -> str:
 
 
 # =========================================================================
+# Skin-aware spinner helpers
+# =========================================================================
+
+def get_skin_waiting_faces() -> list[str]:
+    """Get waiting faces from the active skin, falling back to hardcoded defaults."""
+    skin = _get_skin()
+    if skin:
+        faces = skin.get_spinner_list("waiting_faces")
+        if faces:
+            return faces
+    return KawaiiSpinner.KAWAII_WAITING
+
+
+def get_skin_thinking_faces() -> list[str]:
+    """Get thinking faces from the active skin, falling back to hardcoded defaults."""
+    skin = _get_skin()
+    if skin:
+        faces = skin.get_spinner_list("thinking_faces")
+        if faces:
+            return faces
+    return KawaiiSpinner.KAWAII_THINKING
+
+
+def get_skin_thinking_verbs() -> list[str]:
+    """Get thinking verbs from the active skin, falling back to hardcoded defaults."""
+    skin = _get_skin()
+    if skin:
+        verbs = skin.get_spinner_list("thinking_verbs")
+        if verbs:
+            return verbs
+    return KawaiiSpinner.THINKING_VERBS
+
+
+# =========================================================================
 # Tool preview (one-line summary of a tool call's primary argument)
 # =========================================================================
 
