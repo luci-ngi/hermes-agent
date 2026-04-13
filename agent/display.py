@@ -651,6 +651,12 @@ class KawaiiSpinner:
         "deliberating", "mulling", "reflecting", "processing", "reasoning",
         "analyzing", "computing", "synthesizing", "formulating", "brainstorming",
         "inferring", "deducing", "connecting", "envisioning", "examining",
+        # Expanded from curated list
+        "cerebrating", "orchestrating", "crystallizing", "deciphering", "manifesting",
+        "reticulating", "osmosing", "percolating", "calculating", "composing",
+        "architecting", "distilling", "harmonizing", "calibrating", "reconciling",
+        "interconnecting", "mustering", "concocting", "unraveling", "choreographing",
+        "tempering", "transmuting", "catalyzing", "perusing", "scheming",
     ]
 
     def __init__(self, message: str = "", spinner_type: str = 'dots', print_fn=None):
