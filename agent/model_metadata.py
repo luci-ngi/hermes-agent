@@ -630,7 +630,7 @@ def parse_context_limit_from_error(error_msg: str) -> Optional[int]:
         if match:
             limit = int(match.group(1))
             # Sanity check: must be a reasonable context length
-            if 1024 <= limit <= 10_000_000:
+            if limit >= 10_000:  # context windows are >= 10K; reject parse artifacts like "2013" (excess tokens)
                 return limit
     return None
 
