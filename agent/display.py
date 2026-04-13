@@ -165,40 +165,6 @@ def get_tool_emoji(tool_name: str, default: str = "⚡") -> str:
 
 
 # =========================================================================
-# Skin-aware spinner helpers
-# =========================================================================
-
-def get_skin_waiting_faces() -> list[str]:
-    """Get waiting faces from the active skin, falling back to hardcoded defaults."""
-    skin = _get_skin()
-    if skin:
-        faces = skin.get_spinner_list("waiting_faces")
-        if faces:
-            return faces
-    return KawaiiSpinner.KAWAII_WAITING
-
-
-def get_skin_thinking_faces() -> list[str]:
-    """Get thinking faces from the active skin, falling back to hardcoded defaults."""
-    skin = _get_skin()
-    if skin:
-        faces = skin.get_spinner_list("thinking_faces")
-        if faces:
-            return faces
-    return KawaiiSpinner.KAWAII_THINKING
-
-
-def get_skin_thinking_verbs() -> list[str]:
-    """Get thinking verbs from the active skin, falling back to hardcoded defaults."""
-    skin = _get_skin()
-    if skin:
-        verbs = skin.get_spinner_list("thinking_verbs")
-        if verbs:
-            return verbs
-    return KawaiiSpinner.THINKING_VERBS
-
-
-# =========================================================================
 # Tool preview (one-line summary of a tool call's primary argument)
 # =========================================================================
 
@@ -623,13 +589,12 @@ class KawaiiSpinner:
         'sparkle': ['⁺', '˚', '*', '✧', '✦', '✧', '*', '˚'],
     }
 
-    # Kawaii idle / waiting — warm, friendly, curious
     KAWAII_WAITING = [
         "(｡◕‿◕｡)", "(◕‿◕✿)", "٩(◕‿◕｡)۶", "(✿◠‿◠)", "( ˘▽˘)っ",
         "♪(´ε` )", "(◕ᴗ◕✿)", "ヾ(＾∇＾)", "(≧◡≦)", "(★ω★)",
+        # Expanded: warm, friendly, curious
         "(｡♥‿♥｡)", "(*^‿^*)", "(づ｡◕‿‿◕｡)づ", "(*¯︶¯*)", "(o^▽^o)",
         "ヽ(・∀・)ﾉ", "(*≧ω≦*)", "(^人^)", "(っ˘ω˘ς )", "(ღ˘⌣˘ღ)",
-        # Expanded from curated list
         "(๑˃ᴗ˂)ﻭ", "(♡°▽°♡)", "(つ✧ω✧)つ", "(ﾉ>ω<)ﾉ", "ヾ(☆▽☆)",
     ]
 
@@ -638,20 +603,18 @@ class KawaiiSpinner:
         "(｡•́︿•̀｡)", "(◔_◔)", "(¬‿¬)", "( •_•)>⌐■-■", "(⌐■_■)",
         "(´･_･`)", "◉_◉", "(°ロ°)", "( ˘⌣˘)♡", "ヽ(>∀<☆)☆",
         "٩(๑❛ᴗ❛๑)۶", "(⊙_⊙)", "(¬_¬)", "( ͡° ͜ʖ ͡°)", "ಠ_ಠ",
+        # Expanded: more variety for reasoning moments
         "( •̀_\•́ )", "(￣～￣;)", "( •́ .̫ •̀ )", "( ˘•ω•˘ )", "(๑•́ - •̀๑)",
-        # Expanded from curated list
         "(・_・;)", "( ˙-˙ )", "(⊙﹏⊙)", "(•ิ_•ิ)?",
         "('・_・')", "( ・◇・)?", '(¬_¬")', "(눈‸눈)",
         "( •̀ ω •́ )✧",
     ]
 
-    # Verbs for thinking spinner — varied, evocative, Hermes-kawaii tone
     THINKING_VERBS = [
         "pondering", "contemplating", "musing", "cogitating", "ruminating",
         "deliberating", "mulling", "reflecting", "processing", "reasoning",
         "analyzing", "computing", "synthesizing", "formulating", "brainstorming",
-        "inferring", "deducing", "connecting", "envisioning", "examining",
-        # Expanded from curated list
+        # Expanded: curated vocabulary for the thinking spinner
         "cerebrating", "orchestrating", "crystallizing", "deciphering", "manifesting",
         "reticulating", "osmosing", "percolating", "calculating", "composing",
         "architecting", "distilling", "harmonizing", "calibrating", "reconciling",
